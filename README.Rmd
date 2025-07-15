@@ -25,7 +25,7 @@ devtools::install_github("SMAC-Group/fima")
 If you use this package, please cite:
 
 ```
-@article{FIMA2024,
+@article{fima,
   title = {Fiducial Matching: Differentially Private Inference for Categorical Data},
   author = {Romanus, O. M., Boulaguiem, Y. and Molinari, R.},
   year = {2025},
