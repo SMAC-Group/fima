@@ -27,7 +27,7 @@ Provides the FIMA distribution of the \eqn{\chi^2} statistic under the null hypo
 }
 \examples{
 \dontrun{
-# FIMA distribution for two-sample proportions
+# FIMA distribution for chi-2 statistic under independence
 joint_probs <- c(0.25, 0.25, 0.25, 0.25) # true probabilities for multinomial
 n <- 100 # total sample size
 set.seed(124) # seed for reproducibility

@@ -246,7 +246,7 @@ chi2 <- function(tab){
 #' @export
 #' @examples
 #' \dontrun{
-#' # FIMA distribution for two-sample proportions
+#' # FIMA distribution for chi-2 statistic under independence
 #' joint_probs <- c(0.25, 0.25, 0.25, 0.25) # true probabilities for multinomial
 #' n <- 100 # total sample size
 #' set.seed(124) # seed for reproducibility
@@ -303,12 +303,36 @@ expit <- function(x) {
 
 }
 
-### This is wrong since each proportion has different base sample size n: needs to be fixed
-fima_logistic <- function(dp_pi, n, eps = 1, delta = 2, H = 10^4, seed = 123) {
-
+#' FIMA for Logistic Regression (Categorical Predictors)
+#' @description Provides the FIMA distribution of the coefficients of logistic regression with categorical predictors. All combination of outcomes across predictors can be considered as K classes of a multinomial each with a probability of success (see Romanus et al., 2025).
+#' @param dp_pi A \code{double} vector representing the K proportions privatized with Laplace noise.
+#' @param n An \code{integer} value representing the sample size (i.e. total original counts).
+#' @param eps A \code{double} value representing the privacy budget \eqn{\epsilon} used to guarantee \eqn{\epsilon}-DP for the proportions in \code{dp_pi} (default value is \code{eps = 1}).
+#' @param delta A \code{double} representing the count-sensitivity used to guarantee \eqn{\epsilon}-DP for the proportions in \code{dp_pi} (default value is \code{delta = 1}).
+#' @param H An \code{integer} representing the number of bootstrap solutions to approximate the FIMA distribution (default value is \code{H = 10^4}).
+#' @param seed An \code{integer} representing a seed value to generate the random variables used in the FIMA to generate solutions (default value is \code{seed = NA}, hence no seed).
+#' @return A \code{matrix} whose columns contain the FIMA distribution for each of the K coefficients from the logistic regression
+#' @author Roberto Molinari and Ogonnaya M. Romanus
+#' @import stats
+#' @import utils
+#' @export
+#' @examples
+#' \dontrun{
+#' # FIMA distribution for logistic coefficients (one categorical predictor)
+#' joint_probs <- c(0.3, 0.2, 0.4, 0.1) # true probabilities for each combination of X = 0,1 based on T = 0,1
+#' n <- 100 # total sample size
+#' set.seed(124) # seed for reproducibility
+#' prop <- rmultinom(1, n, prob = joint_probs)/n # sample proportions for each combination
+#' eps <- 1 # epsilon-DP privacy budget
+#' priv_props <- dp_prop(prop, n, eps, delta = 1) # DP proportions for each combination
+#' dist <- fima_logistic(priv_props, n, eps) # produce FIMA distribution for logistic coefficients
+#' }
+#' @references Romanus, O.M., Boulaguiem, Y. & Molinari, R. (2025) "Fiducial Matching: Differentially Private Inference for Categorical Data".
+fima_logistic <- function(dp_pi, n, eps = 1, delta = 2, H = 10^4, seed = NA) {
+  
   # Generate distributions for betas
-  fima_beta0 <- logit(fima_prop(dp_stat = dp_pi[1], n = n, eps = eps / length(dp_pi), delta = delta, H = H, seed = seed + 1))
-  fima_betas <- logit(sapply(dp_pi[-1], fima_prop, n = n, eps = eps / length(dp_pi), delta = delta, H = H, seed = seed + 2)) - fima_beta0
+  fima_beta0 <- logit(fima_prop(dp_stat = dp_pi[1], n = n, eps = eps, delta = delta, H = H, seed = seed + 1))
+  fima_betas <- logit(sapply(dp_pi[-1], fima_prop, n = n, eps = eps, delta = delta, H = H, seed = seed + 2)) - fima_beta0
 
   # Compute differences
   beta <- cbind(fima_beta0, fima_betas)
